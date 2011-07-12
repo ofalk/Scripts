@@ -96,8 +96,10 @@ sub find_jobs {
 			$sth->execute();
 			while(my $ref = $sth->fetchrow_hashref()) {
 				# Skip these tables - you cannot dump them
-				next if $ref->{'Tables_in_'.$_} eq 'general_log';
-				next if $ref->{'Tables_in_'.$_} eq 'slow_log';
+				if ($_ eq 'mysql') {
+					next if $ref->{'Tables_in_'.$_} eq 'general_log';
+					next if $ref->{'Tables_in_'.$_} eq 'slow_log';
+				}
 				push @backup_tasks, { dbn => $_, tbn => $ref->{'Tables_in_'.$_} };
 			}
 			$sth->finish();
@@ -145,11 +147,11 @@ sub dump_data_base($) {
 
 	my $cmd;
 	unless(PASS) {
-		$cmd = sprintf('%s         -u"%s"           %s         %s | bzip2 -c > %s',
-		                   MYSQLDUMP,    USER,         $database, $table,       $destination_file);
+		$cmd = sprintf("%s         -u'%s'           %s         %s | bzip2 -c > %s",
+		                MYSQLDUMP,    USER,         $database, $table,         $destination_file);
 	} else {
-		$cmd = sprintf('%s         -u"%s"  -p"%s"  %s         %s | bzip2 -c > %s',
-		                   MYSQLDUMP,    USER,   PASS, $database, $table,       $destination_file);
+		$cmd = sprintf("%s         -u'%s'  -p'%s',  %s         %s | bzip2 -c > %s",
+		                MYSQLDUMP,    USER,   PASS, $database, $table,         $destination_file);
 	}
 	unless(DRYRUN) {
 		open(DUMP, "$cmd|");
