@@ -37,6 +37,8 @@ use constant DEBUG => 1;
 use constant USE_ASCIITable => 1;
 # Path to mysqldump command line tool
 use constant MYSQLDUMP => '/usr/bin/mysqldump';
+# Path to bzip2 / pbzip2 or gzip
+use constant COMPRESSOR => '/usr/bin/pbzip2';
 # This is recommended!
 use constant USE_DBI => 1;
 # END of user part
@@ -147,11 +149,11 @@ sub dump_data_base($) {
 
 	my $cmd;
 	unless(PASS) {
-		$cmd = sprintf("%s         -u'%s'           %s         %s | bzip2 -c > %s",
-		                MYSQLDUMP,    USER,         $database, $table,         $destination_file);
+		$cmd = sprintf("%s         -u'%s'           %s         %s |    %s -c           > %s",
+		                MYSQLDUMP,    USER,         $database, $table, COMPRESSOR,       $destination_file);
 	} else {
-		$cmd = sprintf("%s         -u'%s'  -p'%s',  %s         %s | bzip2 -c > %s",
-		                MYSQLDUMP,    USER,   PASS, $database, $table,         $destination_file);
+		$cmd = sprintf("%s         -u'%s'  -p'%s',  %s         %s |    %s -c           > %s",
+		                MYSQLDUMP,    USER,   PASS, $database, $table, COMPRESSOR,       $destination_file);
 	}
 	unless(DRYRUN) {
 		open(DUMP, "$cmd|");
