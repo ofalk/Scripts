@@ -148,7 +148,7 @@ sub dump_data_base($) {
 		$cmd = sprintf('%s         -u"%s"           %s         %s | bzip2 -c > %s',
 		                   MYSQLDUMP,    USER,         $database, $table,       $destination_file);
 	} else {
-		$cmd = sprintf('%s         -u"%s"  -p"%s",  %s         %s | bzip2 -c > %s',
+		$cmd = sprintf('%s         -u"%s"  -p"%s"  %s         %s | bzip2 -c > %s',
 		                   MYSQLDUMP,    USER,   PASS, $database, $table,       $destination_file);
 	}
 	unless(DRYRUN) {
