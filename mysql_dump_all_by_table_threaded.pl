@@ -37,8 +37,10 @@ use constant DEBUG => 1;
 use constant USE_ASCIITable => 1;
 # Path to mysqldump command line tool
 use constant MYSQLDUMP => '/usr/bin/mysqldump';
-# Path to bzip2 / pbzip2 or gzip
+# Path to bzip2 / pbzip2 or gzip - also change the next
+# line COMPRESS_EXTENSION if you change your compressor...
 use constant COMPRESSOR => '/usr/bin/pbzip2';
+use constant COMPRESS_EXTENSION => 'bz2';
 # This is recommended!
 use constant USE_DBI => 1;
 # END of user part
@@ -140,7 +142,7 @@ sub dump_data_base($) {
 	my $database = $dbntbn->{dbn};
 	my $table = $dbntbn->{tbn};
 	my $destination_path = DIR . '/' . $database;
-	my $destination_file = $destination_path . '/' . $table . '.dump.bz2';
+	my $destination_file = $destination_path . '/' . $table . '.dump.' . COMPRESS_EXTENSION;
 	$dbntbn->{start_time} = DateTime->now->ymd . '-' . DateTime->now->hms;
 	logger("'dump_data_base' thread " . threads->tid() . " started - $database - $table\n") if DEBUG >= 2;
 
