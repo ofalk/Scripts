@@ -1,0 +1,107 @@
+#!/usr/bin/perl
+
+###############################################################################
+#
+# phonebook - Active Directory phonebook for the command line
+#
+# Copyright (c) by  Oliver Falk, 2008-2012
+#                   oliver@linux-kernel.at
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl itself, either Perl version 5.8.0 or,
+# at your option, any later version of Perl 5 you may have available.
+#
+# This program is available on github:
+# https://github.com/ofalk/Scripts
+#
+# You can change the variables (ldap_.*) in this script to reflect your
+# environment, or you can create a phonebook.conf file (Config::General style).
+# Search path for the config file is /usr/local/etc/, /etc/ or $(pwd)
+#
+###############################################################################
+
+use strict;
+use warnings;
+
+use Net::LDAP;
+use Net::LDAP::Control::Paged;
+use Net::LDAP::Constant qw( LDAP_CONTROL_PAGED );
+my %conf;
+eval {
+	require Config::General;
+	my $pbc;
+
+	$pbc = '/usr/local/etc/phonebook.conf' if -f '/usr/local/etc/phonebook.conf';
+	$pbc = '/etc/phonebook.conf' if -f '/etc/phonebook.conf';
+	$pbc = 'phonebook.conf' if -f 'phonebook.conf';
+
+	my $c = new Config::General($pbc);
+	%conf = $c->getall;
+	
+};
+
+my $searchop = $ARGV[0] || "";
+
+my $ldap_base   = $conf{'ldap_base'}   || 'dc=com';
+my $ldap_server = $conf{'ldap_server'} || [ qw^ldap://dc01:389^ ];
+my $ldap_login  = $conf{'ldap_login'}  || '';
+my $ldap_secret = $conf{'ldap_secret'} || '';
+
+my $attrs = [ qw/cn sn givenName telephoneNumber mobile initials mail primaryGroupID msSFU30UidNumber description office physicalDeliveryOfficeName/ ];
+
+my $ldap = Net::LDAP->new(
+        $ldap_server,
+        onerror => 'warn',
+) || die "$@";
+
+my $page = Net::LDAP::Control::Paged->new( size => 100 );
+$ldap->bind($ldap_login, password => $ldap_secret) || die "$@" if $ldap_secret;
+
+my @args = (
+        base            => $ldap_base,
+        filter          => "(|(sn=*$searchop*)(cn=$searchop*)(mobile=*$searchop*)(telephoneNumber=*$searchop*))",
+        attrs           => $attrs,
+);
+
+my $cookie;
+while(1) {
+        # Perform search
+        my $msg = $ldap->search(@args);
+
+        my $href = $msg->as_struct;
+        my @arrayOfDNs  = keys %$href;        # use DN hashes
+        foreach ( @arrayOfDNs ) {
+                #print $_, "\n";
+                my $valref = $$href{$_};
+                # get an array of the attribute names
+                # passed for this one DN.
+                my @arrayOfAttrs = sort keys %$valref; #use Attr hashes
+                my $attrName;
+                print "$_:\n";
+                foreach $attrName (@arrayOfAttrs) {
+                        # skip any binary data: yuck!
+                        next if ( $attrName =~ /;binary$/ );
+                        # get the attribute value (pointer) using the
+                        # attribute name as the hash
+                        my $attrVal =  @$valref{$attrName};
+                        print "\t $attrName: @$attrVal \n";
+                }
+                print "#---------------------------------------------------\n" if scalar @arrayOfDNs > 1;
+                # End of that DN
+        }
+
+        # Only continue on LDAP_SUCCESS
+        $msg->code and last;
+        # Get cookie from paged control
+        my ($resp) = $msg->control(LDAP_CONTROL_PAGED) or last;
+        $cookie = $resp->cookie or last;
+        # Set cookie in paged control
+        $page->cookie($cookie);
+}
+
+if($cookie) {
+        # We had an abnormal exit, so let the server know we do not want any more
+        $page->cookie($cookie);
+        $page->size(0);
+        $ldap->search(@args);
+}
