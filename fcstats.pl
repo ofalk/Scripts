@@ -21,6 +21,8 @@ use Time::HiRes qw/tv_interval gettimeofday/;
 use Data::Dumper; # debug only
 use Getopt::Long;
 
+use bignum qw/hex/;
+
 use constant PATH => '/sys/class/fc_host/host*';
 
 my $secs = 1;
