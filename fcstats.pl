@@ -62,6 +62,11 @@ while(1) {
 	foreach(@hba) {
 		my $hbaname = basename($_);
 
+		open(FN, "$_/node_name");
+		$hbas->{$hbaname}->{node_name} = <FN>;
+		chomp($hbas->{$hbaname}->{node_name});
+		close(FN);
+
 		open(FH, "$_/port_state");
 		$hbas->{$hbaname}->{portstate} = <FH>;
 		chomp($hbas->{$hbaname}->{portstate});
@@ -86,9 +91,11 @@ while(1) {
 			$hbas->{$hbaname}->{last_tx} = $hbas->{$hbaname}->{tx};
 			$hbas->{$hbaname}->{tx_ps} = $hbas->{$hbaname}->{diff_tx} / $elapsed;
 
-			printf("$hbaname: RX: %10d $abbr (%9.2f $abbr/s), TX: %10d $abbr (%9.2f $abbr/s)\n", $hbas->{$hbaname}->{rx}, $hbas->{$hbaname}->{rx_ps}, $hbas->{$hbaname}->{tx}, $hbas->{$hbaname}->{tx_ps});
+			printf("%-6s [%s]: RX: %10d $abbr (%7.2f $abbr/s), TX: %10d $abbr (%7.2f $abbr/s)\n",
+				$hbaname, $hbas->{$hbaname}->{node_name}, $hbas->{$hbaname}->{rx},
+				$hbas->{$hbaname}->{rx_ps}, $hbas->{$hbaname}->{tx}, $hbas->{$hbaname}->{tx_ps});
 		} else {
-			printf("$hbaname: Link down\n");
+			printf("%-6s [%s]: Link down\n", $hbaname, $hbas->{$hbaname}->{node_name});
 		}
 	}
 	# print Dumper($hbas); # debug only
