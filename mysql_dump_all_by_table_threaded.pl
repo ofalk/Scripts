@@ -34,7 +34,7 @@ use constant MAX_THREADS => 3;
 # Especially thread related stuff
 use constant DEBUG => 1;
 # Because it is fancy...
-use constant USE_ASCIITable => 1;
+use constant USE_ASCIITable => 0;
 # Path to mysqldump command line tool
 use constant MYSQLDUMP => '/usr/bin/mysqldump';
 # Path to bzip2 / pbzip2 or gzip - also change the next
@@ -186,7 +186,7 @@ sub main {
 
 	if (DEBUG >= 2) {
 		if(USE_ASCIITable) {
-			use Text::ASCIITable;
+			require Text::ASCIITable;
 			my $t = Text::ASCIITable->new();
 			$t->setCols('DB', 'table');
 			foreach (@backup_tasks) {
@@ -223,7 +223,7 @@ sub main {
 	# Everything should be fine, threads should be joined
 	# Display (if enabled) a nice ASCII table
 	if(USE_ASCIITable) {
-		use Text::ASCIITable;
+		require Text::ASCIITable;
 		my $t = Text::ASCIITable->new();
 		$t->setCols('DB', 'table', 'TID', 'Started', 'Finished');
 		foreach (@tasks_done) {
