@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (c) Oliver Falk, 2011
+# Copyright (c) Oliver Falk, 2011-2014
 #               oliver@linux-kernel.at
 #
 # License: See perldoc
