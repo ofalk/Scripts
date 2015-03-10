@@ -96,6 +96,7 @@ sub find_jobs {
 		$sth->finish();
 
 		foreach(@databases) {
+			next if $_ eq 'lost+found';
 			$sth = $dbh->prepare("SHOW TABLES FROM $_");
 			$sth->execute();
 			while(my $ref = $sth->fetchrow_hashref()) {
