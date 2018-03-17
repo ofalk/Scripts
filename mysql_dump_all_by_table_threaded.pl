@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# Copyright (c) Oliver Falk, 2011-2014
+# Copyright (c) Oliver Falk, 2011-2018
 #               oliver@linux-kernel.at
 #
 # License: See perldoc
@@ -97,7 +97,7 @@ sub find_jobs {
 
 		foreach(@databases) {
 			next if $_ eq 'lost+found';
-			$sth = $dbh->prepare("SHOW TABLES FROM $_");
+			$sth = $dbh->prepare("SHOW TABLES FROM `$_`");
 			$sth->execute();
 			while(my $ref = $sth->fetchrow_hashref()) {
 				# Skip these tables - you cannot dump them
@@ -155,7 +155,7 @@ sub dump_data_base($) {
 		$cmd = sprintf("%s         -u'%s'           %s         %s |    %s -c           > %s",
 		                MYSQLDUMP,    USER,         $database, $table, COMPRESSOR,       $destination_file);
 	} else {
-		$cmd = sprintf("%s         -u'%s'  -p'%s',  %s         %s |    %s -c           > %s",
+		$cmd = sprintf("%s         -u'%s'  -p'%s'   %s         %s |    %s -c           > %s",
 		                MYSQLDUMP,    USER,   PASS, $database, $table, COMPRESSOR,       $destination_file);
 	}
 	unless(DRYRUN) {
